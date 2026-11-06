@@ -1,0 +1,13 @@
+[project]
+name = "attempt2"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "bleak>=3.0.2",
+    "python-osc>=1.10.2",
+]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.17.4",
+]
