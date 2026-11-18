@@ -28,7 +28,8 @@ uv run run.py
 
 Once the IMU is connected and sending OSC, open the port with any OSC compatible program from your destination computer.
   - By default, the script sends data to its own network bus (localhost, port 45531). This means any program on the same computer can easily pick up the stream.
-  - Demo Max patch that listens on localhost:45531 on startup: `demo.maxpat`
+
+Demo Max patch that listens on localhost:45531 on startup: `demo.maxpat`
 
 ### Subsequent Runs
 After connecting to a device, the device ID is written to the file `last_connected` in plaintext. To connect directly to the saved device:
@@ -40,8 +41,8 @@ uv run run.py --last
 ## IMU Behavior
 |Device|Pairing|Connected|
 |---|---|---|
-|WT9011DCL|Light blinks twice, repeatedly | Light blinks slowly|
-|BWT901CL|Blue light blinks quickly and continuously|Solid blue light|
+|WT9011DCL|Green blinks twice, repeatedly | Green blinks slowly|
+|BWT901CL|Blue blinks quickly and continuously|Solid blue|
 
 ## OSC Addresses
 
@@ -50,7 +51,7 @@ The script sends data using the OSC convention, which specifies a tree-like addr
 |Address|Value|Unit|
 |---|---|---|
 |`/imu/A*`|Acceleration along a cartesian axis, `*=[X,Y,Z]`, normalized to g (9.8 m/s^2)|$1$|
-|`/imu/G*`|Rotational velocity about a Cartesian axis, `*=[X,Y,Z]`| $\mathrm{m/s}$|
+|`/imu/G*`|Rotational velocity about a Cartesian axis, `*=[X,Y,Z]`| $\mathrm{^\circ/s}$|
 |`/imu/ang*`|Estimated angle[^1] about a Cartesian axis, `*=[X,Y,Z]`|$^\circ$|
 
 For example, your program may receive the message
