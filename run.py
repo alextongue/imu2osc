@@ -43,6 +43,7 @@ async def main(args):
             info = f"settings unavailable ({e})"
         print(f"Connected to {device.name} [{device.address}]")
         print(f"{info}")
+        print(f"\n\t(Ctrl+C to quit)")
 
     def on_data(data: bytes):
         for s in parser.feed(data):

@@ -8,7 +8,7 @@
 ### Instructions
 - Turn on your IMU and make sure it is in pairing mode (table below).
     - Note: Do not pair the device in your Windows/macOS settings! The script handles Bluetooth pairing. If the IMU shows as connected, you must unpair it from your devices (check if other instances of this script are running).
-- Run the main script: `uv run python run.sh`
+- Run the main script: `uv run run.py`
     - The script will search for 5 seconds and report the list of devices. If the pairing device does not broadcast in time, press `r` to rescan.
     - Note: If using the WT9011DCL, the IMU will power off if it does not connect after a minute of broadcasting in pairing mode. Make sure it is turned on.
 - Once the IMU is connected and sending OSC, open the port with any OSC compatible program from your destination computer.

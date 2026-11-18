@@ -43,8 +43,7 @@ async def choose_device(prefixes: tuple[str, ...], timeout: float) -> BLEDevice 
                     f"{dev.address:<{addr_width}}  {rssi} dBm"
                 )
         else:
-            print("No WT901 devices found. Make sure the sensor is powered and not")
-            print("connected to another app or phone.")
+            print("No WT901 devices found. Make sure the sensor is powered and not connected to another app or phone.")
         print("  [r] Re-scan")
         print("  [q] Quit")
 
