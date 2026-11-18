@@ -1,9 +1,10 @@
 """Connect to a WT901DCL / BWT901CL over BLE (no Windows pairing) and print accel + gyro.
 
-Usage: uv run python run.py [--name WT BWT HC-06] [--address AA:BB:CC:DD:EE:FF] [--timeout 5]
-       [--osc-host localhost] [--osc-port 45533] [-v]
+Usage: uv run python run.py [--name WT BWT HC-06] [--address AA:BB:CC:DD:EE:FF | --last]
+       [--timeout 5] [--osc-host localhost] [--osc-port 45533] [-v]
 
-Without --address, shows a menu of the WT901-type devices found. Samples are sent
+After connecting, the device address is saved to last_connected; --last reconnects
+to it. Without --address or --last, shows a menu of the WT901-type devices found. Samples are sent
 over OSC as one bundle: /imu/A{X,Y,Z} (accel, g), /imu/G{X,Y,Z} (gyro, deg/s) and
 /imu/ang{X,Y,Z} (roll/pitch/yaw, deg). IMU values are printed
 to the console only with -v.
@@ -11,6 +12,7 @@ to the console only with -v.
 
 import argparse
 import asyncio
+from pathlib import Path
 
 from utils.ble import find_device, stream
 from utils.menu import choose_device
@@ -18,11 +20,13 @@ from utils.osc import OscSender
 from utils.protocol import FrameParser, RegisterReply
 from utils.settings import describe_settings
 
+LAST_CONNECTED = Path(__file__).with_name("last_connected")
+
 
 async def main(args):
     prefixes = tuple(p.upper() for p in args.name)
     if args.address:
-        print("Scanning...")
+        print(f"Scanning for {args.address}...")
         device = await find_device(prefixes, args.address, args.timeout)
     else:
         device = await choose_device(prefixes, args.timeout)
@@ -37,13 +41,14 @@ async def main(args):
     replies: asyncio.Queue = asyncio.Queue()
 
     async def on_connected(write):
+        LAST_CONNECTED.write_text(device.address + "\n")
         try:
             info = await describe_settings(write, replies)
         except Exception as e:  # noqa: BLE001
             info = f"settings unavailable ({e})"
         print(f"Connected to {device.name} [{device.address}]")
         print(f"{info}")
-        print(f"\n\t(Ctrl+C to quit)")
+        print("\n\t(Ctrl+C to quit)")
 
     def on_data(data: bytes):
         for s in parser.feed(data):
@@ -78,15 +83,29 @@ if __name__ == "__main__":
         default=["WT", "BWT", "HC-06"],
         help="advertised name prefixes to list (case-insensitive)",
     )
-    ap.add_argument("--address", help="BLE address (skips the menu)")
-    ap.add_argument("--timeout", type=float, default=5.0)
+    addr = ap.add_mutually_exclusive_group()
+    addr.add_argument("--address", help="BLE address (skips the menu)")
+    addr.add_argument(
+        "--last",
+        action="store_true",
+        help="use the address saved in last_connected (skips the menu)",
+    )
+    ap.add_argument("--timeout", type=float, default=10.0)
     ap.add_argument("--osc-host", default="localhost")
     ap.add_argument("--osc-port", type=int, default=45531)
     ap.add_argument(
         "-v", "--verbose", action="store_true", help="print IMU values to the console"
     )
+    args = ap.parse_args()
+    if args.last:
+        try:
+            args.address = LAST_CONNECTED.read_text().strip()
+        except OSError:
+            ap.error(f"--last: cannot read {LAST_CONNECTED.name}; connect once first")
+        if not args.address:
+            ap.error(f"--last: {LAST_CONNECTED.name} is empty")
     try:
-        asyncio.run(main(ap.parse_args()))
+        asyncio.run(main(args))
     except KeyboardInterrupt:
         pass
     except (TimeoutError, ConnectionError) as e:
